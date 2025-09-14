@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 
-function ProductList() {
+function ProductList( {addToCart}) {
   const [products, setProducts] = useState([]);
   const [rate, setRate] = useState(null);
 
@@ -30,7 +30,6 @@ function ProductList() {
         {products.map((p) => (
           <Col key={p.id} md={4} className="mb-4">
             <Card className="h-100 shadow-sm">
-              {/* Imagen dummy temporal */}
               <Card.Img
                 variant="top"
                 src={`https://placehold.co/300x200?text=${p.name}`}
@@ -45,8 +44,10 @@ function ProductList() {
                     </span>
                   )}
                 </Card.Text>
-                <Button variant="primary">Add to Cart</Button>
-              </Card.Body>
+                  <Button variant="primary" onClick={() => addToCart(p)}>
+                    Add to Cart
+                  </Button>  
+                </Card.Body>
             </Card>
           </Col>
         ))}
