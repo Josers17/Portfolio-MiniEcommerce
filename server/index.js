@@ -24,7 +24,7 @@ db.connect((err) => {
     console.error("Error connecting to database:", err);
     return;
   }
-  console.log("✅ Connected to MySQL");
+  console.log("Connected to MySQL");
 });
 
 /* app.get("/products", (req, res) => {
@@ -57,12 +57,51 @@ app.post("/products", (req, res) => {
     [name, price],
     (err, result) => {
       if (err) {
-        console.error("❌ Error inserting product:", err);
+        console.error("Error inserting product:", err);
         return res.status(500).json({ error: "Database error" });
       }
       res.status(201).json({ id: result.insertId, name, price });
     }
   );
+});
+
+app.put("/products/:id", (req, res) => {
+  const { id } = req.params;
+  const { name, price } = req.body;
+
+  if (!name || !price) {
+    return res.status(400).json({ error: "Name and price are required" });
+  }
+
+  db.query(
+    "UPDATE products SET name = ?, price = ? WHERE id = ?",
+    [name, price, id],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating product:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+      res.json({ id, name, price });
+    }
+  );
+});
+
+app.delete("/products/:id", (req, res) => {
+  const { id } = req.params;
+
+  db.query("DELETE FROM products WHERE id = ?", [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting product:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    res.json({ message: "Product deleted successfully", id });
+  });
 });
 
 app.listen(PORT, () => {
