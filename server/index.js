@@ -10,6 +10,21 @@ app.get("/", (req, res) => {
   res.send("API is working");
 });
 
+const db = mysql.createConnection({
+  host: "localhost",
+  user: "root",        
+  password: "Root",        
+  database: "ecommerce"
+});
+
+db.connect((err) => {
+  if (err) {
+    console.error("Error connecting to database:", err);
+    return;
+  }
+  console.log("✅ Connected to MySQL");
+});
+
 app.get("/products", (req, res) => {
   res.json([
     { id: 1, name: "Shirt", price: 20 },
