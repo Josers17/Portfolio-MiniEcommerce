@@ -5,7 +5,8 @@ const mysql = require("mysql2");
 const app = express();
 const PORT = 5000;
 
-app.use(cors()); // habilita CORS
+app.use(cors()); 
+app.use(express.json()); 
 
 app.get("/", (req, res) => {
   res.send("API is working");
@@ -42,6 +43,26 @@ app.get("/products", (req, res) => {
     }
     res.json(results);
   });
+});
+
+app.post("/products", (req, res) => {
+  const { name, price } = req.body;
+
+  if (!name || !price) {
+    return res.status(400).json({ error: "Name and price are required" });
+  }
+
+  db.query(
+    "INSERT INTO products (name, price) VALUES (?, ?)",
+    [name, price],
+    (err, result) => {
+      if (err) {
+        console.error("❌ Error inserting product:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      res.status(201).json({ id: result.insertId, name, price });
+    }
+  );
 });
 
 app.listen(PORT, () => {
