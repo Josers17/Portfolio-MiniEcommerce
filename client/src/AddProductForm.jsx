@@ -20,7 +20,7 @@ function AddProductForm({ onProductAdded }) {
       if (!res.ok) throw new Error("Error adding product");
 
       const data = await res.json();
-      onProductAdded(data); // avisa al padre que hay producto nuevo
+      onProductAdded(data); 
       setName("");
       setPrice("");
     } catch (error) {

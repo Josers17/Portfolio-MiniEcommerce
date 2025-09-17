@@ -45,7 +45,7 @@ app.get("/products", (req, res) => {
   });
 });
 
-app.post("/products", (req, res) => {
+/* app.post("/products", (req, res) => {
   const { name, price } = req.body;
 
   if (!name || !price) {
@@ -64,7 +64,7 @@ app.post("/products", (req, res) => {
     }
   );
 });
-
+ */
 const bcrypt = require("bcryptjs");
 
 app.post("/register", async (req, res) => {
