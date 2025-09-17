@@ -65,6 +65,95 @@ app.post("/products", (req, res) => {
   );
 });
 
+const bcrypt = require("bcryptjs");
+
+app.post("/register", async (req, res) => {
+  const { username, password, role } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Username and password are required" });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  db.query(
+    "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+    [username, hashedPassword, role || "customer"],
+    (err, result) => {
+      if (err) {
+        console.error("Error registering user:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      res.status(201).json({ id: result.insertId, username, role: role || "customer" });
+    }
+  );
+});
+
+const jwt = require("jsonwebtoken");
+const SECRET = "secret_key"; 
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  db.query("SELECT * FROM users WHERE username = ?", [username], async (err, results) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    if (results.length === 0) return res.status(401).json({ error: "Invalid credentials" });
+
+    const user = results[0];
+    const match = await bcrypt.compare(password, user.password);
+
+    if (!match) return res.status(401).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ message: "Login successful", token });
+  });
+});
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+function isAdmin(req, res, next) {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied, admin only" });
+  }
+  next();
+}
+
+app.get("/products", (req, res) => {
+  db.query("SELECT * FROM products", (err, results) => {
+    if (err) return res.status(500).json({ error: "Database error" });
+    res.json(results);
+  });
+});
+
+app.post("/products", authenticateToken, isAdmin, (req, res) => {
+  const { name, price } = req.body;
+  db.query(
+    "INSERT INTO products (name, price) VALUES (?, ?)",
+    [name, price],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+      res.status(201).json({ id: result.insertId, name, price });
+    }
+  );
+});
+
+
 app.put("/products/:id", (req, res) => {
   const { id } = req.params;
   const { name, price } = req.body;

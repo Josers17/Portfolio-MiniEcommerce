@@ -1,28 +1,6 @@
-import { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 
-function ProductList( {addToCart}) {
-  const [products, setProducts] = useState([]);
-  const [rate, setRate] = useState(null);
-
-  useEffect(() => {
-    fetch("http://localhost:5000/products")
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
-      .catch((err) => console.error("Error fetching products:", err));
-  }, []);
-
-  useEffect(() => {
-    fetch("https://api.frankfurter.app/latest?from=USD&to=MXN")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && data.rates && data.rates.MXN) {
-          setRate(data.rates.MXN);
-        }
-      })
-      .catch((err) => console.error("Error fetching exchange rate:", err));
-  }, []);
-
+function ProductList({ products, addToCart, rate }) {
   return (
     <Container className="mt-4">
       <h2 className="mb-4 text-center">Our Products</h2>
@@ -44,10 +22,10 @@ function ProductList( {addToCart}) {
                     </span>
                   )}
                 </Card.Text>
-                  <Button variant="primary" onClick={() => addToCart(p)}>
-                    Add to Cart
-                  </Button>  
-                </Card.Body>
+                <Button variant="primary" onClick={() => addToCart(p)}>
+                  Add to Cart
+                </Button>
+              </Card.Body>
             </Card>
           </Col>
         ))}
