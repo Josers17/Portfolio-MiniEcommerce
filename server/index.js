@@ -196,3 +196,51 @@ app.delete("/products/:id", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+app.get("/cart/:userId", authenticateToken, (req, res) => {
+  const { userId } = req.params;
+
+  if (req.user.id != userId && req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  db.query(
+    "SELECT c.id, p.name, p.price, c.quantity FROM cart c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?",
+    [userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+      res.json(results);
+    }
+  );
+});
+
+app.post("/cart", authenticateToken, (req, res) => {
+  const { product_id, quantity } = req.body;
+  const userId = req.user.id;
+
+  db.query(
+    "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE quantity = quantity + VALUES(quantity)",
+    [userId, product_id, quantity || 1],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+      res.status(201).json({ message: "Product added to cart" });
+    }
+  );
+});
+
+app.delete("/cart/:id", authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  db.query(
+    "DELETE FROM cart WHERE id = ? AND user_id = ?",
+    [id, userId],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: "Database error" });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Cart item not found" });
+      }
+      res.json({ message: "Item removed from cart" });
+    }
+  );
+});
