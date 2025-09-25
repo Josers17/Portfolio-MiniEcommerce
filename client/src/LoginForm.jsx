@@ -18,14 +18,11 @@ function LoginForm({ onLogin }) {
 
       const data = await res.json();
 
-      // Guardamos token y userId en localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.user.id);
 
-      // Notificamos al App.jsx que el login fue exitoso
       onLogin(data.user);
 
-      // Limpiamos el formulario
       setUsername("");
       setPassword("");
     } catch (err) {

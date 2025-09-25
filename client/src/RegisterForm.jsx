@@ -20,7 +20,6 @@ function RegisterForm({ onRegister }) {
       const data = await res.json();
       alert("User registered successfully");
 
-      // Si quieres, puedes loguear automáticamente al usuario después de registrarse
       if (onRegister) onRegister(data);
 
       setUsername("");
